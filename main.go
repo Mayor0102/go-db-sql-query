@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 
 	_ "modernc.org/sqlite"
 )
@@ -32,10 +33,10 @@ func main() {
 
 	// добавление нового клиента
 	newClient := Client{
-		FIO:      "", // укажите ФИО
-		Login:    "", // укажите логин
-		Birthday: "", // укажите день рождения
-		Email:    "", // укажите почту
+		FIO:      "Попов Антон Борисович", // укажите ФИО
+		Login:    "popAnton2000",          // укажите логин
+		Birthday: "20000101",              // укажите день рождения
+		Email:    "pop@yandex.ru",         // укажите почту
 	}
 
 	id, err := insertClient(db, newClient)
@@ -85,17 +86,43 @@ func main() {
 
 func insertClient(db *sql.DB, client Client) (int64, error) {
 	// напишите здесь код для добавления новой записи в таблицу clients
+	res, err := db.Exec("insert into clients (fio, login, birthday, email) values (:fio, :login, :birthday, :email)",
+		sql.Named("fio", client.FIO),
+		sql.Named("login", client.Login),
+		sql.Named("birthday", client.Birthday),
+		sql.Named("email", client.Email))
 
-	return 0, nil // вместо 0 верните идентификатор добавленной записи
+	if err != nil {
+		return -1, err
+	}
+
+	idInsertClient, err := res.LastInsertId()
+	if err != nil {
+		return -1, err
+	}
+
+	return idInsertClient, nil // вместо 0 верните идентификатор добавленной записи
 }
 
 func updateClientLogin(db *sql.DB, login string, id int64) error {
 	// напишите здесь код для обновления поля login в таблице clients у записи с заданным id
+	_, err := db.Exec("update clients set login = :login where id = :id",
+		sql.Named("login", login),
+		sql.Named("id", id))
+	if err != nil {
+		log.Println(err)
+	}
+
 	return nil
 }
 
 func deleteClient(db *sql.DB, id int64) error {
 	// напишите здесь код для удаления записи из таблицы clients по заданному id
+	_, err := db.Exec("delete from clients where id = :id", sql.Named("id", id))
+	if err != nil {
+		log.Println(err)
+	}
+
 	return nil
 }
 
